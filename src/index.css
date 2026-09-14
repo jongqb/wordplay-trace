@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Fredoka', 'Quicksand', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+}
+
+/* Tian Zi Ge Chinese Writing Grid Pattern */
+.tian-zi-ge {
+  background-color: #FFFBEB;
+  background-image: 
+    linear-gradient(to right, rgba(239, 68, 68, 0.25) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(239, 68, 68, 0.25) 1px, transparent 1px);
+  background-size: 50% 50%;
+  position: relative;
+}
+
+.tian-zi-ge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    linear-gradient(45deg, transparent 49.5%, rgba(239, 68, 68, 0.15) 50%, transparent 50.5%),
+    linear-gradient(-45deg, transparent 49.5%, rgba(239, 68, 68, 0.15) 50%, transparent 50.5%);
+  pointer-events: none;
+}
+
+/* Custom dashed trace stroke animations */
+@keyframes dash {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+.animate-stroke-dash {
+  animation: dash 1.5s linear infinite;
+}
+
+/* Kid Touch Canvas */
+.drawing-canvas {
+  touch-action: none;
+}
+
+/* Custom scrollbars for tablet */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(224, 242, 254, 0.5);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb {
+  background: #93C5FD;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #60A5FA;
+}

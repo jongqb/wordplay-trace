@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#72C5FD" />
+      <stop offset="50%" stop-color="#4AA8F0" />
+      <stop offset="100%" stop-color="#3187DF" />
+    </linearGradient>
+
+    <!-- Left Leg Gradient: Cyan-Blue to Emerald Green -->
+    <linearGradient id="leftLegGrad" x1="0%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" stop-color="#2563EB" />
+      <stop offset="25%" stop-color="#06B6D4" />
+      <stop offset="65%" stop-color="#34D399" />
+      <stop offset="100%" stop-color="#84CC16" />
+    </linearGradient>
+
+    <!-- Right Leg Gradient: Golden to Coral/Orange -->
+    <linearGradient id="rightLegGrad" x1="0%" y1="0%" x2="30%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D" />
+      <stop offset="45%" stop-color="#FB923C" />
+      <stop offset="100%" stop-color="#EA580C" />
+    </linearGradient>
+
+    <!-- Crossbar Ribbon Gradient: Sunshine Yellow -->
+    <linearGradient id="crossbarGrad" x1="0%" y1="0%" x2="100%" y2="20%">
+      <stop offset="0%" stop-color="#FEF08A" />
+      <stop offset="50%" stop-color="#FDE047" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+
+    <!-- Subtle Shadows -->
+    <filter id="dropShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#1E3A8A" flood-opacity="0.25" />
+    </filter>
+
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Squircle Base -->
+  <rect x="24" y="24" width="464" height="464" rx="108" ry="108" fill="url(#bgGrad)" filter="url(#dropShadow)" />
+
+  <!-- Subtle Top Highlight Arch -->
+  <path d="M 50 150 Q 256 60 462 150 Q 256 90 50 150 Z" fill="#FFFFFF" opacity="0.12" />
+
+  <!-- The Stylized 'A' Tracing Mark -->
+  <g id="letterA" filter="url(#softGlow)">
+    <!-- Left Leg (Green Tracing Stroke) -->
+    <path d="M 188 336 C 182 300 216 195 256 128" 
+          fill="none" stroke="url(#leftLegGrad)" stroke-width="38" stroke-linecap="round" stroke-linejoin="round" />
+    <!-- Left Start Dot (Blue/Cyan indicator) -->
+    <circle cx="188" cy="336" r="14" fill="#2563EB" stroke="#60A5FA" stroke-width="3" />
+    <circle cx="188" cy="336" r="5" fill="#BFDBFE" />
+
+    <!-- Right Leg (Orange Arrow Stroke) -->
+    <path d="M 256 128 C 290 190 326 295 338 336" 
+          fill="none" stroke="url(#rightLegGrad)" stroke-width="38" stroke-linecap="round" stroke-linejoin="round" />
+    <!-- Apex Dot (Green indicator) -->
+    <circle cx="256" cy="128" r="13" fill="#22C55E" stroke="#86EFAC" stroke-width="3" />
+
+    <!-- Right Stroke Arrow Head Guide -->
+    <path d="M 326 316 L 338 340 L 350 316" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.8" />
+
+    <!-- Crossbar Ribbon (Curved Yellow Band) -->
+    <path d="M 184 272 C 220 274 290 262 344 200" 
+          fill="none" stroke="url(#crossbarGrad)" stroke-width="32" stroke-linecap="round" />
+    <!-- Crossbar Start Dot -->
+    <circle cx="184" cy="272" r="11" fill="#F59E0B" stroke="#FEF08A" stroke-width="3" />
+
+    <!-- Checkmark on Crossbar -->
+    <path d="M 322 216 L 332 226 L 348 206" 
+          fill="none" stroke="#D97706" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- Chinese Character "学" (Learn) in center opening -->
+    <g id="chinese-xue" transform="translate(228, 280) scale(0.68)" opacity="0.95">
+      <!-- Dots on top -->
+      <ellipse cx="20" cy="18" rx="4" ry="7" transform="rotate(-20 20 18)" fill="#06B6D4" />
+      <ellipse cx="40" cy="14" rx="4" ry="7" fill="#F59E0B" />
+      <ellipse cx="62" cy="18" rx="4" ry="7" transform="rotate(20 62 18)" fill="#FB923C" />
+      <!-- Crown roof -->
+      <path d="M 14 36 L 22 36 L 22 44" fill="none" stroke="#10B981" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 22 36 Q 42 34 66 36 L 68 44" fill="none" stroke="#10B981" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+      <!-- Child radical -->
+      <path d="M 40 48 L 46 56 L 32 66 L 56 66" fill="none" stroke="#3B82F6" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 42 56 Q 44 76 34 84" fill="none" stroke="#F97316" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 20 72 L 64 70" fill="none" stroke="#38BDF8" stroke-width="5.5" stroke-linecap="round" />
+    </g>
+  </g>
+
+  <!-- Bottom Brand Text: "WordPlay Trace" -->
+  <text x="256" y="420" 
+        text-anchor="middle" 
+        font-family="system-ui, -apple-system, 'Fredoka', 'Quicksand', 'Nunito', sans-serif" 
+        font-size="44" 
+        font-weight="700" 
+        letter-spacing="0.5" 
+        fill="#FFFFFF"
+        filter="drop-shadow(0 2px 4px rgba(15, 23, 42, 0.35))">WordPlay Trace</text>
+</svg>

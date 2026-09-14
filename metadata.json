@@ -1,0 +1,6 @@
+{
+  "name": "WordPlay Trace",
+  "description": "Tablet-first kid-friendly spelling and handwriting tracing PWA for English, Bahasa Malaysia, and Chinese.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
