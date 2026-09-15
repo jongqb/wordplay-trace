@@ -10,11 +10,6 @@ import { TestCanvas } from './components/TestCanvas';
 import { CourseTestSummary, TestResultItem } from './components/CourseTestSummary';
 import { ParentDashboard } from './components/ParentDashboard';
 import { PinModal } from './components/PinModal';
-import { AddCourseModal } from './components/AddCourseModal';
-import { AddWordModal } from './components/AddWordModal';
-import { EditCourseModal } from './components/EditCourseModal';
-import { EditWordModal } from './components/EditWordModal';
-import { DeleteConfirmModal } from './components/DeleteConfirmModal';
 import { SplashScreen } from './components/SplashScreen';
 import { ArrowLeft, Shield } from 'lucide-react';
 
@@ -48,156 +43,6 @@ export default function App() {
 
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-
-  // Direct Course & Word Management State
-  const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
-  const [isAddWordOpen, setIsAddWordOpen] = useState(false);
-  const [targetCourseForWord, setTargetCourseForWord] = useState<Course | null>(null);
-  const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
-  const [courseToEdit, setCourseToEdit] = useState<Course | null>(null);
-  const [wordToDelete, setWordToDelete] = useState<{
-    courseId: string;
-    wordId: string;
-    wordName: string;
-  } | null>(null);
-  const [wordToEdit, setWordToEdit] = useState<{
-    course: Course;
-    word: WordItem;
-  } | null>(null);
-  const [isParentUnlocked, setIsParentUnlocked] = useState(false);
-  const [pendingParentAction, setPendingParentAction] = useState<(() => void) | null>(null);
-
-  // Guard for parent actions: prompts PIN if not yet unlocked in this session
-  const requireParentAuth = (action: () => void) => {
-    if (isParentUnlocked) {
-      action();
-    } else {
-      setPendingParentAction(() => action);
-      setIsPinModalOpen(true);
-    }
-  };
-
-  // Update Existing Course
-  const handleUpdateCourse = (updatedCourse: Course) => {
-    const updated = courses.map((c) => (c.id === updatedCourse.id ? updatedCourse : c));
-    setCourses(updated);
-    StorageService.saveCourses(updated);
-    if (selectedCourse?.id === updatedCourse.id) {
-      setSelectedCourse(updatedCourse);
-    }
-    soundEngine.playStarPop(1);
-  };
-
-  // Update Existing Word in Course
-  const handleUpdateWord = (courseId: string, updatedWord: WordItem) => {
-    const updated = courses.map((course) => {
-      if (course.id === courseId) {
-        return {
-          ...course,
-          words: course.words.map((w) => (w.id === updatedWord.id ? updatedWord : w)),
-        };
-      }
-      return course;
-    });
-
-    setCourses(updated);
-    StorageService.saveCourses(updated);
-
-    if (selectedCourse?.id === courseId) {
-      const updatedSelected = updated.find((c) => c.id === courseId);
-      if (updatedSelected) setSelectedCourse(updatedSelected);
-    }
-    soundEngine.playStarPop(1);
-  };
-
-  // 1. Create Course Handler
-  const handleCreateCourse = (newCourse: Course) => {
-    const updated = [...courses, newCourse];
-    setCourses(updated);
-    StorageService.saveCourses(updated);
-    setCurrentLanguage(newCourse.language);
-    setSelectedCourse(newCourse);
-    soundEngine.playStarPop(2);
-  };
-
-  // 2. Delete Course Handler
-  const handleConfirmDeleteCourse = () => {
-    if (!courseToDelete) return;
-    const updated = courses.filter((c) => c.id !== courseToDelete.id);
-    setCourses(updated);
-    StorageService.saveCourses(updated);
-
-    if (selectedCourse?.id === courseToDelete.id) {
-      const nextInLang = updated.filter((c) => c.language === currentLanguage);
-      if (nextInLang.length > 0) {
-        setSelectedCourse(nextInLang[0]);
-      } else if (updated.length > 0) {
-        setCurrentLanguage(updated[0].language);
-        setSelectedCourse(updated[0]);
-      } else {
-        setSelectedCourse(null);
-      }
-    }
-
-    setCourseToDelete(null);
-    soundEngine.playGentleBoop();
-  };
-
-  // 3. Add Word Handler
-  const handleAddWordToCourse = (newWord: WordItem, addAnother: boolean = false) => {
-    if (!targetCourseForWord) return;
-    const updated = courses.map((course) => {
-      if (course.id === targetCourseForWord.id) {
-        return {
-          ...course,
-          words: [...course.words, newWord],
-        };
-      }
-      return course;
-    });
-
-    setCourses(updated);
-    StorageService.saveCourses(updated);
-
-    const updatedCurrent = updated.find((c) => c.id === targetCourseForWord.id);
-    if (updatedCurrent) {
-      setTargetCourseForWord(updatedCurrent);
-      if (selectedCourse?.id === targetCourseForWord.id) {
-        setSelectedCourse(updatedCurrent);
-      }
-    }
-
-    soundEngine.playStarPop(1);
-    if (!addAnother) {
-      setIsAddWordOpen(false);
-    }
-  };
-
-  // 4. Delete Word Handler
-  const handleConfirmDeleteWord = () => {
-    if (!wordToDelete) return;
-    const { courseId, wordId } = wordToDelete;
-    const updated = courses.map((course) => {
-      if (course.id === courseId) {
-        return {
-          ...course,
-          words: course.words.filter((w) => w.id !== wordId),
-        };
-      }
-      return course;
-    });
-
-    setCourses(updated);
-    StorageService.saveCourses(updated);
-
-    if (selectedCourse?.id === courseId) {
-      const updatedSelected = updated.find((c) => c.id === courseId);
-      if (updatedSelected) setSelectedCourse(updatedSelected);
-    }
-
-    setWordToDelete(null);
-    soundEngine.playGentleBoop();
-  };
 
   // Initialize data on mount
   useEffect(() => {
@@ -362,7 +207,6 @@ export default function App() {
         isMuted={isMuted}
         onToggleMute={handleToggleMute}
         onOpenParentPin={() => setIsPinModalOpen(true)}
-        onOpenAddCourse={() => requireParentAuth(() => setIsAddCourseOpen(true))}
         letterCase={parentSettings.letterCase}
         onToggleLetterCase={handleToggleLetterCase}
       />
@@ -429,43 +273,7 @@ export default function App() {
                   onStartCourseTest={handleStartCourseTest}
                   progressMap={progressMap}
                   letterCase={parentSettings.letterCase}
-                  onOpenAddCourse={() => requireParentAuth(() => setIsAddCourseOpen(true))}
-                  onOpenAddWord={(course) => {
-                    requireParentAuth(() => {
-                      setTargetCourseForWord(course);
-                      setIsAddWordOpen(true);
-                    });
-                  }}
-                  onEditCourse={(course) => {
-                    requireParentAuth(() => {
-                      setCourseToEdit(course);
-                    });
-                  }}
-                  onDeleteCourse={(course) => {
-                    requireParentAuth(() => {
-                      setCourseToDelete(course);
-                    });
-                  }}
-                  onEditWord={(course, word) => {
-                    requireParentAuth(() => {
-                      setWordToEdit({ course, word });
-                    });
-                  }}
-                  onDeleteWord={(courseId, wordId) => {
-                    requireParentAuth(() => {
-                      const crs = courses.find((c) => c.id === courseId);
-                      const wrd = crs?.words.find((w) => w.id === wordId);
-                      setWordToDelete({
-                        courseId,
-                        wordId,
-                        wordName: wrd?.word || 'this word',
-                      });
-                    });
-                  }}
-                  onOpenParentDashboard={() => {
-                    setPendingParentAction(null);
-                    setIsPinModalOpen(true);
-                  }}
+                  onOpenParentDashboard={() => setIsPinModalOpen(true)}
                 />
               </div>
             )}
@@ -478,25 +286,14 @@ export default function App() {
                 </div>
                 <h3 className="text-xl font-black text-slate-800 mb-1">No Courses In This Language Yet</h3>
                 <p className="text-xs sm:text-sm text-slate-500 max-w-sm mb-4">
-                  Parents can easily create new courses and sight words right now.
+                  Parents can easily create new courses and sight words inside the Parent Zone.
                 </p>
-                <div className="flex flex-wrap items-center justify-center gap-2">
-                  <button
-                    onClick={() => requireParentAuth(() => setIsAddCourseOpen(true))}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-6 py-2.5 rounded-2xl shadow-sm transition active:scale-95 text-sm cursor-pointer"
-                  >
-                    + Add New Course
-                  </button>
-                  <button
-                    onClick={() => {
-                      setPendingParentAction(null);
-                      setIsPinModalOpen(true);
-                    }}
-                    className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-6 py-2.5 rounded-2xl shadow-sm transition active:scale-95 text-sm cursor-pointer"
-                  >
-                    Open Parent Zone
-                  </button>
-                </div>
+                <button
+                  onClick={() => setIsPinModalOpen(true)}
+                  className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-6 py-2.5 rounded-2xl shadow-sm transition active:scale-95 text-sm cursor-pointer border-2 border-amber-300"
+                >
+                  Open Parent Zone
+                </button>
               </div>
             )}
 
@@ -560,74 +357,11 @@ export default function App() {
         correctPin={parentSettings.pin || '1234'}
         onSuccess={() => {
           setIsPinModalOpen(false);
-          setIsParentUnlocked(true);
-          if (pendingParentAction) {
-            const action = pendingParentAction;
-            setPendingParentAction(null);
-            action();
-          } else {
-            setAppMode('parent');
-          }
+          setAppMode('parent');
         }}
         onClose={() => {
           setIsPinModalOpen(false);
-          setPendingParentAction(null);
         }}
-      />
-
-      {/* Direct Add Course Modal */}
-      <AddCourseModal
-        isOpen={isAddCourseOpen}
-        initialLanguage={currentLanguage}
-        defaultReps={parentSettings.repetitionsPerWord || 2}
-        onClose={() => setIsAddCourseOpen(false)}
-        onCreateCourse={handleCreateCourse}
-      />
-
-      {/* Direct Add Word Modal */}
-      <AddWordModal
-        isOpen={isAddWordOpen}
-        course={targetCourseForWord || activeCourse}
-        onClose={() => setIsAddWordOpen(false)}
-        onAddWord={handleAddWordToCourse}
-      />
-
-      {/* Delete Course Confirmation Modal */}
-      <DeleteConfirmModal
-        isOpen={!!courseToDelete}
-        title={`Delete "${courseToDelete?.title}"?`}
-        message={`Are you sure you want to delete the course "${courseToDelete?.title}"?`}
-        subMessage={`This will permanently remove all ${courseToDelete?.words.length || 0} words in this course.`}
-        confirmLabel="Delete Course"
-        onConfirm={handleConfirmDeleteCourse}
-        onClose={() => setCourseToDelete(null)}
-      />
-
-      {/* Edit Course Modal */}
-      <EditCourseModal
-        isOpen={!!courseToEdit}
-        course={courseToEdit}
-        onClose={() => setCourseToEdit(null)}
-        onUpdateCourse={handleUpdateCourse}
-      />
-
-      {/* Edit Word Modal */}
-      <EditWordModal
-        isOpen={!!wordToEdit}
-        word={wordToEdit?.word || null}
-        course={wordToEdit?.course || null}
-        onClose={() => setWordToEdit(null)}
-        onUpdateWord={handleUpdateWord}
-      />
-
-      {/* Delete Word Confirmation Modal */}
-      <DeleteConfirmModal
-        isOpen={!!wordToDelete}
-        title={`Delete "${wordToDelete?.wordName}"?`}
-        message={`Are you sure you want to delete "${wordToDelete?.wordName}" from this course?`}
-        confirmLabel="Delete Word"
-        onConfirm={handleConfirmDeleteWord}
-        onClose={() => setWordToDelete(null)}
       />
     </div>
   );
