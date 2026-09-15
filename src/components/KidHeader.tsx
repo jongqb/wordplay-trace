@@ -1,7 +1,7 @@
 import React from 'react';
 import { AppIcon } from './AppIcon';
 import { Language } from '../types';
-import { Star, Volume2, VolumeX, Shield, Sparkles, FolderPlus } from 'lucide-react';
+import { Star, Volume2, VolumeX, Shield, Sparkles } from 'lucide-react';
 import { PWAInstallButton } from './PWAInstallButton';
 import { soundEngine } from '../utils/audio';
 
@@ -12,7 +12,6 @@ interface KidHeaderProps {
   isMuted: boolean;
   onToggleMute: () => void;
   onOpenParentPin: () => void;
-  onOpenAddCourse?: () => void;
   letterCase?: 'uppercase' | 'lowercase';
   onToggleLetterCase?: () => void;
 }
@@ -24,7 +23,6 @@ export const KidHeader: React.FC<KidHeaderProps> = ({
   isMuted,
   onToggleMute,
   onOpenParentPin,
-  onOpenAddCourse,
   letterCase = 'uppercase',
   onToggleLetterCase,
 }) => {
@@ -114,19 +112,6 @@ export const KidHeader: React.FC<KidHeaderProps> = ({
         <div className="hidden sm:block">
           <PWAInstallButton />
         </div>
-
-        {/* Quick + Add Course in Header */}
-        {onOpenAddCourse && (
-          <button
-            onClick={onOpenAddCourse}
-            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-3 py-2 rounded-2xl border-2 border-emerald-500 shadow-xs transition text-xs sm:text-sm cursor-pointer"
-            title="Create a new course or spelling unit"
-          >
-            <FolderPlus className="w-4 h-4" />
-            <span className="hidden sm:inline">+ Add Course</span>
-            <span className="sm:hidden">+ Course</span>
-          </button>
-        )}
 
         {/* Parent Zone Button with clear label */}
         <button

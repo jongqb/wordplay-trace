@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { WordItem, ParentSettings } from '../types';
 import { soundEngine } from '../utils/audio';
 import { StorageService } from '../utils/storage';
+import { verifySpelling } from '../utils/spellingVerifier';
 import confetti from 'canvas-confetti';
 import {
   Volume2,
@@ -145,78 +146,44 @@ export const TestCanvas: React.FC<TestCanvasProps> = ({
 
     setIsEvaluating(true);
 
-    // Analyze pixel coverage & bounding density
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-    let nonWhitePixels = 0;
-    let minX = canvas.width;
-    let maxX = 0;
-    let minY = canvas.height;
-    let maxY = 0;
-
-    for (let i = 0; i < data.length; i += 4) {
-      const alpha = data[i + 3];
-      if (alpha > 50) {
-        nonWhitePixels++;
-        const pixelIdx = i / 4;
-        const px = pixelIdx % canvas.width;
-        const py = Math.floor(pixelIdx / canvas.width);
-        if (px < minX) minX = px;
-        if (px > maxX) maxX = px;
-        if (py < minY) minY = py;
-        if (py > maxY) maxY = py;
-      }
-    }
-
-    const drawnWidth = Math.max(0, maxX - minX);
-
     setTimeout(() => {
       setIsEvaluating(false);
 
-      // Kid-friendly validation logic:
-      const expectedCharCount = wordItem.word.length;
-      let stars = 3;
-      let feedback = 'Outstanding Handwriting!';
-
-      if (nonWhitePixels < 800 || drawnWidth < 40) {
-        stars = 1;
-        feedback = 'Keep practicing! Try writing bigger and clearer across the lines.';
-      } else if (strokeCount < Math.max(1, expectedCharCount * 0.8) && wordItem.language !== 'zh') {
-        stars = 2;
-        feedback = 'Good effort! Remember all the letter strokes.';
-      } else {
-        stars = 3;
-        feedback = 'Superb spelling! You nailed it!';
-      }
+      const verification = verifySpelling(
+        canvas,
+        targetWord,
+        wordItem.language,
+        strokeCount
+      );
 
       setEvaluationResult({
-        passed: stars >= 2,
-        stars,
-        feedback,
+        passed: verification.passed,
+        stars: verification.stars,
+        feedback: verification.feedback,
       });
 
       // Update storage and stats
       StorageService.saveWordProgress(wordItem.id, {
-        testPassed: stars >= 2,
-        stars,
+        testPassed: verification.passed,
+        stars: verification.stars,
       });
-      StorageService.addStats(stars, stars >= 2);
+      StorageService.addStats(verification.stars, verification.passed);
 
-      // Fanfare and confetti
-      soundEngine.playStarPop(stars);
-      soundEngine.playVictoryFanfare();
+      if (verification.passed) {
+        soundEngine.playStarPop(verification.stars);
+        soundEngine.playVictoryFanfare();
 
-      try {
-        confetti({
-          particleCount: stars === 3 ? 100 : 50,
-          spread: 80,
-          origin: { y: 0.6 },
-          colors: ['#F59E0B', '#3B82F6', '#10B981', '#EC4899', '#8B5CF6'],
-        });
-      } catch {}
+        try {
+          confetti({
+            particleCount: verification.stars === 3 ? 100 : 50,
+            spread: 80,
+            origin: { y: 0.6 },
+            colors: ['#F59E0B', '#3B82F6', '#10B981', '#EC4899', '#8B5CF6'],
+          });
+        } catch {}
+      } else {
+        soundEngine.playGentleBoop();
+      }
     }, 400);
   };
 
@@ -299,48 +266,68 @@ export const TestCanvas: React.FC<TestCanvasProps> = ({
 
         {/* Evaluation Result Banner Overlay */}
         {evaluationResult && (
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center animate-in zoom-in-95 duration-200 z-30">
+          <div className="absolute inset-0 bg-slate-900/85 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center animate-in zoom-in-95 duration-200 z-30">
             {/* Stars Award */}
             <div className="flex items-center gap-2 mb-3">
               {[1, 2, 3].map((s) => (
                 <Star
                   key={s}
                   className={`w-12 h-12 sm:w-16 sm:h-16 transform transition-all duration-300 ${
-                    s <= evaluationResult.stars
+                    evaluationResult.passed && s <= evaluationResult.stars
                       ? 'fill-amber-400 text-amber-500 scale-110 drop-shadow-md animate-bounce'
-                      : 'fill-slate-600 text-slate-500 opacity-50'
+                      : !evaluationResult.passed && s === 1
+                      ? 'fill-amber-400/40 text-amber-400/60'
+                      : 'fill-slate-700 text-slate-600 opacity-40'
                   }`}
                   style={{ animationDelay: `${s * 150}ms` }}
                 />
               ))}
             </div>
 
-            <h3 className="text-3xl sm:text-4xl font-black text-white mb-2 tracking-wide">
-              {evaluationResult.stars === 3
-                ? '⭐ Superb Writing! ⭐'
-                : evaluationResult.stars === 2
-                ? 'Well Done!'
-                : 'Good Try!'}
+            <h3 className="text-2xl sm:text-4xl font-black text-white mb-2 tracking-wide">
+              {evaluationResult.passed
+                ? evaluationResult.stars === 3
+                  ? '⭐ Superb Spelling! ⭐'
+                  : 'Well Done!'
+                : 'Keep Practicing!'}
             </h3>
 
-            <p className="text-amber-300 text-base sm:text-lg font-bold mb-6 max-w-md">
+            <p
+              className={`text-base sm:text-lg font-bold mb-6 max-w-md ${
+                evaluationResult.passed ? 'text-amber-300' : 'text-amber-200/90'
+              }`}
+            >
               {evaluationResult.feedback}
             </p>
 
-            <div className="flex gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-3">
               <button
                 onClick={clearCanvas}
-                className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-bold px-5 py-3 rounded-2xl border border-slate-600 transition"
+                className={`flex items-center gap-2 font-bold px-6 py-3 rounded-2xl transition active:scale-95 shadow-md ${
+                  !evaluationResult.passed
+                    ? 'bg-amber-400 hover:bg-amber-500 text-slate-950 border-2 border-amber-300 ring-2 ring-amber-300/50 text-lg font-black'
+                    : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-600'
+                }`}
               >
                 <RotateCcw className="w-5 h-5" />
-                <span>Try Again</span>
+                <span>{evaluationResult.passed ? 'Write Again' : 'Try Again ✏️'}</span>
               </button>
 
               <button
                 onClick={handleNextWordClick}
-                className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-black px-7 py-3 rounded-2xl shadow-xl transition active:scale-95 text-lg"
+                className={`flex items-center gap-2 font-black px-7 py-3 rounded-2xl shadow-xl transition active:scale-95 text-base sm:text-lg ${
+                  evaluationResult.passed
+                    ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                    : 'bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-600'
+                }`}
               >
-                <span>{currentIndex + 1 < totalWords ? 'Next Test Word' : 'See Course Results! 🏆'}</span>
+                <span>
+                  {evaluationResult.passed
+                    ? currentIndex + 1 < totalWords
+                      ? 'Next Test Word'
+                      : 'See Course Results! 🏆'
+                    : 'Skip Word ➔'}
+                </span>
                 <ArrowRight className="w-6 h-6" />
               </button>
             </div>
